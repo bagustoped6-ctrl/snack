@@ -57,8 +57,10 @@ main{max-width:480px;margin:0 auto;padding:14px 10px 60px;}
 .btn-wa{display:flex;align-items:center;justify-content:center;gap:5px;background:var(--wa);color:#fff;text-decoration:none;border-radius:8px;padding:8px 10px;font-size:12px;font-weight:600;margin-top:2px;}
 .btn-wa svg{width:14px;height:14px;fill:#fff;flex-shrink:0;}
 
-/* LIGHTBOX */
-.lb-overlay{position:fixed;inset:0;background:var(--overlay);z-index:9999;display:none;flex-direction:column;align-items:center;justify-content:center;padding:20px;}
+/* LIGHTBOX / GALERI PRODUK */
+.card-img{cursor:zoom-in;transition:filter .18s ease;}
+.card-img:hover{filter:brightness(.94);}
+.lb-overlay{position:fixed;inset:0;background:var(--overlay);z-index:9999;display:none;flex-direction:column;align-items:center;justify-content:center;padding:20px;overflow-y:auto;overscroll-behavior:contain;}
 .lb-overlay.open{display:flex;}
 .lb-top{width:100%;max-width:400px;display:flex;justify-content:flex-end;margin-bottom:10px;}
 .lb-close{background:rgba(255,255,255,.15);border:none;color:#fff;width:36px;height:36px;border-radius:50%;font-size:18px;cursor:pointer;display:flex;align-items:center;justify-content:center;}
@@ -69,7 +71,17 @@ main{max-width:480px;margin:0 auto;padding:14px 10px 60px;}
 .lb-dots{display:flex;gap:6px;margin-top:12px;justify-content:center;}
 .lb-dot{width:7px;height:7px;border-radius:50%;background:rgba(255,255,255,.35);cursor:pointer;border:none;transition:.2s;}
 .lb-dot.active{background:#fff;}
-.lb-title{color:#fff;font-size:13px;font-weight:600;margin-top:12px;text-align:center;}
+.lb-title{color:#fff;font-size:13px;font-weight:600;margin-top:10px;text-align:center;}
+.lb-gallery{width:100%;max-width:400px;position:relative;}
+.lb-nav{position:absolute;top:50%;transform:translateY(-50%);width:36px;height:42px;border:0;background:rgba(0,0,0,.55);color:#fff;font-size:26px;line-height:1;cursor:pointer;z-index:2;display:grid;place-items:center;}
+.lb-prev{left:0;border-radius:0 8px 8px 0;}.lb-next{right:0;border-radius:8px 0 0 8px;}
+.lb-nav:disabled{opacity:.25;cursor:default;}
+.lb-thumbs{width:100%;max-width:400px;display:flex;justify-content:flex-start;gap:8px;overflow-x:auto;padding:10px 1px 5px;scrollbar-width:thin;}
+.lb-thumb{flex:0 0 54px;width:54px;height:54px;padding:2px;background:transparent;border:2px solid transparent;border-radius:7px;cursor:pointer;opacity:.65;}
+.lb-thumb.active{opacity:1;border-color:#fff;}
+.lb-thumb img{display:block;width:100%;height:100%;object-fit:cover;border-radius:3px;}
+.lb-count{color:rgba(255,255,255,.85);font-size:12px;margin-top:5px;}
+@media(max-height:620px){.lb-overlay{justify-content:flex-start;}.lb-gallery{max-width:min(330px,75vh);}.lb-top,.lb-thumbs{max-width:min(330px,75vh);}}
 
 footer{text-align:center;padding:14px;font-size:11px;color:var(--ink-soft);border-top:1px solid var(--border);}
 </style>
@@ -96,12 +108,17 @@ footer{text-align:center;padding:14px;font-size:11px;color:var(--ink-soft);borde
 </main>
 
 <!-- LIGHTBOX -->
-<div class="lb-overlay" id="lightbox" role="dialog" aria-modal="true" aria-label="Galeri foto produk">
+<div class="lb-overlay" id="lightbox" role="dialog" aria-modal="true" aria-hidden="true" aria-label="Galeri foto produk">
   <div class="lb-top"><button class="lb-close" id="lbClose" type="button" aria-label="Tutup galeri">✕</button></div>
-  <div class="lb-track-wrap" id="lbWrap">
-    <div class="lb-track" id="lbTrack"></div>
+  <div class="lb-gallery">
+    <div class="lb-track-wrap" id="lbWrap">
+      <div class="lb-track" id="lbTrack"></div>
+    </div>
+    <button class="lb-nav lb-prev" id="lbPrev" type="button" aria-label="Foto sebelumnya">‹</button>
+    <button class="lb-nav lb-next" id="lbNext" type="button" aria-label="Foto berikutnya">›</button>
   </div>
-  <div class="lb-dots" id="lbDots"></div>
+  <div class="lb-thumbs" id="lbThumbs" aria-label="Pilihan foto produk"></div>
+  <div class="lb-count" id="lbCount" aria-live="polite"></div>
   <p class="lb-title" id="lbTitle"></p>
 </div>
 
@@ -167,7 +184,7 @@ function buildCard(p, idx) {
   const waMsg = encodeURIComponent('Halo, saya ingin order *' + p.name + '*');
   const desc = p.desc ? `<p class="card-desc">${p.desc}</p>` : '';
   return `<div class="card" data-idx="${idx}">
-    <img class="card-img" src="${p.imgs[0]}" alt="${p.name}" loading="lazy">
+    <img class="card-img" src="${p.imgs[0]}" alt="Klik untuk melihat galeri foto ${p.name}" tabindex="0" loading="lazy">
     <div class="card-body">
       <p class="card-title">${p.name}</p>
       ${desc}
@@ -184,14 +201,18 @@ function renderAll() {
     const el = document.getElementById('sec-'+key);
     el.innerHTML = `<div class="grid">${list.map((p)=>buildCard(p, products.indexOf(p))).join('')}</div>`;
   }
+  // Klik khusus pada gambar produk membuka galeri produk tersebut.
   document.addEventListener('click', function(e) {
-    const card = e.target.closest('.card');
-    const waBtn = e.target.closest('.btn-wa');
-    if (waBtn) return;
-    if (card) {
-      const idx = parseInt(card.dataset.idx);
-      const p = productIndex[idx];
-      if (p) openLb(p.imgs, p.name);
+    const image = e.target.closest('.card-img');
+    if (!image) return;
+    const card = image.closest('.card');
+    const p = card && productIndex[Number(card.dataset.idx)];
+    if (p) openLb(p.imgs, p.name);
+  });
+  document.addEventListener('keydown', function(e) {
+    if (e.target.matches('.card-img') && (e.key === 'Enter' || e.key === ' ')) {
+      e.preventDefault();
+      e.target.click();
     }
   });
 }
@@ -217,16 +238,18 @@ function openLb(imgs, title) {
   lbImgs = imgs.filter(Boolean);
   lbIdx = 0;
   const track = document.getElementById('lbTrack');
-  track.innerHTML = lbImgs.map(src=>`<div class="lb-slide"><img src="${src}" alt=""></div>`).join('');
+  track.innerHTML = lbImgs.map((src,i)=>`<div class="lb-slide"><img src="${src}" alt="Foto ${i+1} - ${title}" loading="eager"></div>`).join('');
   document.getElementById('lbTitle').textContent = title;
-  renderDots();
+  renderThumbs();
   moveTo(0);
   document.getElementById('lightbox').classList.add('open');
+  document.getElementById('lightbox').setAttribute('aria-hidden', 'false');
   document.body.style.overflow='hidden';
 }
 
 function closeLb() {
   document.getElementById('lightbox').classList.remove('open');
+  document.getElementById('lightbox').setAttribute('aria-hidden', 'true');
   document.body.style.overflow='';
 }
 
@@ -243,19 +266,27 @@ document.addEventListener('keydown', e => {
 });
 
 function moveTo(idx) {
-  lbIdx = idx;
-  document.getElementById('lbTrack').style.transform = `translateX(-${idx*100}%)`;
-  document.querySelectorAll('.lb-dot').forEach((d,i)=>d.classList.toggle('active',i===idx));
+  if (!lbImgs.length) return;
+  lbIdx = Math.max(0, Math.min(idx, lbImgs.length-1));
+  document.getElementById('lbTrack').style.transform = `translateX(-${lbIdx*100}%)`;
+  const thumbs = [...document.querySelectorAll('.lb-thumb')];
+  thumbs.forEach((thumb,i)=>thumb.classList.toggle('active', i===lbIdx));
+  thumbs[lbIdx]?.scrollIntoView({block:'nearest',inline:'nearest'});
+  document.getElementById('lbCount').textContent = `Foto ${lbIdx+1} dari ${lbImgs.length}`;
+  document.getElementById('lbPrev').disabled = lbIdx === 0;
+  document.getElementById('lbNext').disabled = lbIdx === lbImgs.length-1;
 }
 
-function renderDots() {
-  const dots = document.getElementById('lbDots');
-  dots.innerHTML = lbImgs.map((_,i)=>`<button type="button" class="lb-dot${i===0?' active':''}" data-slide="${i}" aria-label="Lihat foto ${i + 1}"></button>`).join('');
+function renderThumbs() {
+  const thumbs = document.getElementById('lbThumbs');
+  thumbs.innerHTML = lbImgs.map((src,i)=>`<button type="button" class="lb-thumb" data-slide="${i}" aria-label="Lihat foto ${i+1}"><img src="${src}" alt="" loading="lazy"></button>`).join('');
 }
-document.getElementById('lbDots').addEventListener('click', e => {
-  const dot = e.target.closest('.lb-dot');
-  if (dot) moveTo(Number(dot.dataset.slide));
+document.getElementById('lbThumbs').addEventListener('click', e => {
+  const thumb = e.target.closest('.lb-thumb');
+  if (thumb) moveTo(Number(thumb.dataset.slide));
 });
+document.getElementById('lbPrev').addEventListener('click', () => moveTo(lbIdx - 1));
+document.getElementById('lbNext').addEventListener('click', () => moveTo(lbIdx + 1));
 
 // Swipe support
 const lbWrap = document.getElementById('lbWrap');
