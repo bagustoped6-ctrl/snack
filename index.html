@@ -58,7 +58,7 @@ main{max-width:480px;margin:0 auto;padding:14px 10px 60px;}
 .btn-wa svg{width:14px;height:14px;fill:#fff;flex-shrink:0;}
 
 /* LIGHTBOX */
-.lb-overlay{position:fixed;inset:0;background:var(--overlay);z-index:100;display:none;flex-direction:column;align-items:center;justify-content:center;padding:20px;}
+.lb-overlay{position:fixed;inset:0;background:var(--overlay);z-index:9999;display:none;flex-direction:column;align-items:center;justify-content:center;padding:20px;}
 .lb-overlay.open{display:flex;}
 .lb-top{width:100%;max-width:400px;display:flex;justify-content:flex-end;margin-bottom:10px;}
 .lb-close{background:rgba(255,255,255,.15);border:none;color:#fff;width:36px;height:36px;border-radius:50%;font-size:18px;cursor:pointer;display:flex;align-items:center;justify-content:center;}
@@ -82,10 +82,10 @@ footer{text-align:center;padding:14px;font-size:11px;color:var(--ink-soft);borde
 </header>
 
 <div class="section-tab">
-  <button class="tab-btn active" onclick="switchTab('semua',this)">Semua</button>
-  <button class="tab-btn" onclick="switchTab('kiloan',this)">Kiloan</button>
-  <button class="tab-btn" onclick="switchTab('snack',this)">Snack</button>
-  <button class="tab-btn" onclick="switchTab('kemasan',this)">Kemasan</button>
+  <button class="tab-btn active" data-tab="semua">Semua</button>
+  <button class="tab-btn" data-tab="kiloan">Kiloan</button>
+  <button class="tab-btn" data-tab="snack">Snack</button>
+  <button class="tab-btn" data-tab="kemasan">Kemasan</button>
 </div>
 
 <main>
@@ -96,8 +96,8 @@ footer{text-align:center;padding:14px;font-size:11px;color:var(--ink-soft);borde
 </main>
 
 <!-- LIGHTBOX -->
-<div class="lb-overlay" id="lightbox" onclick="lbClickOutside(event)">
-  <div class="lb-top"><button class="lb-close" onclick="closeLb()">✕</button></div>
+<div class="lb-overlay" id="lightbox" role="dialog" aria-modal="true" aria-label="Galeri foto produk">
+  <div class="lb-top"><button class="lb-close" id="lbClose" type="button" aria-label="Tutup galeri">✕</button></div>
   <div class="lb-track-wrap" id="lbWrap">
     <div class="lb-track" id="lbTrack"></div>
   </div>
@@ -107,7 +107,7 @@ footer{text-align:center;padding:14px;font-size:11px;color:var(--ink-soft);borde
 
 <footer>ABS Snack · Min. order 1 pcs · Harga belum termasuk ongkir</footer>
 
-<script>
+<script data-cfasync="false">
 const WA = "6287880834479";
 
 const products = [
@@ -203,6 +203,12 @@ function switchTab(key, btn) {
   document.getElementById('sec-'+key).classList.add('active');
 }
 
+// Gunakan event listener, bukan onclick di HTML (lebih stabil di Cloudflare).
+document.querySelector('.section-tab').addEventListener('click', e => {
+  const btn = e.target.closest('.tab-btn');
+  if (btn) switchTab(btn.dataset.tab, btn);
+});
+
 // LIGHTBOX
 let lbIdx = 0, lbImgs = [];
 let startX = 0;
@@ -224,9 +230,17 @@ function closeLb() {
   document.body.style.overflow='';
 }
 
-function lbClickOutside(e) {
-  if(e.target === document.getElementById('lightbox')) closeLb();
-}
+document.getElementById('lbClose').addEventListener('click', closeLb);
+document.getElementById('lightbox').addEventListener('click', e => {
+  if (e.target.id === 'lightbox') closeLb();
+});
+
+document.addEventListener('keydown', e => {
+  if (!document.getElementById('lightbox').classList.contains('open')) return;
+  if (e.key === 'Escape') closeLb();
+  if (e.key === 'ArrowRight') moveTo(Math.min(lbIdx + 1, lbImgs.length - 1));
+  if (e.key === 'ArrowLeft') moveTo(Math.max(lbIdx - 1, 0));
+});
 
 function moveTo(idx) {
   lbIdx = idx;
@@ -236,8 +250,12 @@ function moveTo(idx) {
 
 function renderDots() {
   const dots = document.getElementById('lbDots');
-  dots.innerHTML = lbImgs.map((_,i)=>`<button class="lb-dot${i===0?' active':''}" onclick="moveTo(${i})"></button>`).join('');
+  dots.innerHTML = lbImgs.map((_,i)=>`<button type="button" class="lb-dot${i===0?' active':''}" data-slide="${i}" aria-label="Lihat foto ${i + 1}"></button>`).join('');
 }
+document.getElementById('lbDots').addEventListener('click', e => {
+  const dot = e.target.closest('.lb-dot');
+  if (dot) moveTo(Number(dot.dataset.slide));
+});
 
 // Swipe support
 const lbWrap = document.getElementById('lbWrap');
