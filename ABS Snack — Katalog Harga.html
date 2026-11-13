@@ -1,0 +1,248 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>ABS Snack — Katalog Harga</title>
+<link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display:ital@0;1&family=DM+Sans:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+:root {
+  --bg: #FFF8F0;
+  --surface: #FFFFFF;
+  --ink: #2C1A1A;
+  --ink-soft: #9B7B7B;
+  --accent: #7D3354;
+  --border: #F0DDD5;
+  --wa: #25D366;
+  --overlay: rgba(44,26,26,0.85);
+}
+@media (prefers-color-scheme: dark) {
+  :root {
+    --bg: #1E1215;
+    --surface: #2A1820;
+    --ink: #FFF8F0;
+    --ink-soft: #C4A0A0;
+    --border: #3D2030;
+    --overlay: rgba(0,0,0,0.92);
+  }
+}
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0;}
+html,body{background:var(--bg);color:var(--ink);font-family:'DM Sans',sans-serif;-webkit-tap-highlight-color:transparent;}
+
+header{background:#7D3354;color:#fff;text-align:center;padding:28px 20px 20px;}
+header h1{font-family:'DM Serif Display',serif;font-size:1.8rem;font-weight:400;margin-bottom:3px;}
+header p{font-size:11px;opacity:.65;}
+
+.section-tab{display:flex;gap:8px;padding:12px 14px;overflow-x:auto;scrollbar-width:none;background:var(--surface);border-bottom:1px solid var(--border);position:sticky;top:0;z-index:10;}
+.section-tab::-webkit-scrollbar{display:none;}
+.tab-btn{flex-shrink:0;background:transparent;border:1px solid var(--border);border-radius:20px;padding:5px 14px;font-size:12px;font-family:'DM Sans',sans-serif;color:var(--ink-soft);cursor:pointer;transition:.15s;}
+.tab-btn.active{background:#7D3354;border-color:#7D3354;color:#fff;}
+
+main{max-width:480px;margin:0 auto;padding:14px 10px 60px;}
+.section{display:none;}
+.section.active{display:block;}
+.section-label{font-size:10px;letter-spacing:.08em;text-transform:uppercase;color:var(--ink-soft);padding:4px 2px 10px;}
+
+.grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:20px;}
+
+.card{background:var(--surface);border:1px solid var(--border);border-radius:12px;overflow:hidden;display:flex;flex-direction:column;cursor:pointer;-webkit-tap-highlight-color:transparent;}
+.card-img{width:100%;aspect-ratio:1/1;object-fit:cover;display:block;}
+.card-body{padding:9px 10px 11px;display:flex;flex-direction:column;gap:7px;flex:1;}
+.card-title{font-size:12px;font-weight:600;line-height:1.3;color:var(--ink);}
+.card-desc{font-size:10px;color:var(--ink-soft);line-height:1.4;}
+.price-list{display:flex;flex-direction:column;gap:3px;}
+.price-row{display:flex;justify-content:space-between;font-size:11px;}
+.price-size{color:var(--ink-soft);}
+.price-val{font-weight:600;color:var(--ink);}
+.btn-wa{display:flex;align-items:center;justify-content:center;gap:5px;background:var(--wa);color:#fff;text-decoration:none;border-radius:8px;padding:8px 10px;font-size:12px;font-weight:600;margin-top:2px;}
+.btn-wa svg{width:14px;height:14px;fill:#fff;flex-shrink:0;}
+
+/* LIGHTBOX */
+.lb-overlay{position:fixed;inset:0;background:var(--overlay);z-index:100;display:none;flex-direction:column;align-items:center;justify-content:center;padding:20px;}
+.lb-overlay.open{display:flex;}
+.lb-top{width:100%;max-width:400px;display:flex;justify-content:flex-end;margin-bottom:10px;}
+.lb-close{background:rgba(255,255,255,.15);border:none;color:#fff;width:36px;height:36px;border-radius:50%;font-size:18px;cursor:pointer;display:flex;align-items:center;justify-content:center;}
+.lb-track-wrap{width:100%;max-width:400px;overflow:hidden;border-radius:12px;}
+.lb-track{display:flex;transition:transform .3s ease;will-change:transform;}
+.lb-slide{flex-shrink:0;width:100%;}
+.lb-slide img{width:100%;aspect-ratio:1/1;object-fit:cover;display:block;}
+.lb-dots{display:flex;gap:6px;margin-top:12px;justify-content:center;}
+.lb-dot{width:7px;height:7px;border-radius:50%;background:rgba(255,255,255,.35);cursor:pointer;border:none;transition:.2s;}
+.lb-dot.active{background:#fff;}
+.lb-title{color:#fff;font-size:13px;font-weight:600;margin-top:12px;text-align:center;}
+
+footer{text-align:center;padding:14px;font-size:11px;color:var(--ink-soft);border-top:1px solid var(--border);}
+</style>
+</head>
+<body>
+
+<header>
+  <h1>ABS <em>Snack</em></h1>
+  <p>Katalog Harga • Order via WhatsApp</p>
+</header>
+
+<div class="section-tab">
+  <button class="tab-btn active" onclick="switchTab('semua',this)">Semua</button>
+  <button class="tab-btn" onclick="switchTab('kiloan',this)">Kiloan</button>
+  <button class="tab-btn" onclick="switchTab('snack',this)">Snack</button>
+  <button class="tab-btn" onclick="switchTab('kemasan',this)">Kemasan</button>
+</div>
+
+<main>
+  <div id="sec-semua" class="section active"></div>
+  <div id="sec-kiloan" class="section"></div>
+  <div id="sec-snack" class="section"></div>
+  <div id="sec-kemasan" class="section"></div>
+</main>
+
+<!-- LIGHTBOX -->
+<div class="lb-overlay" id="lightbox" onclick="lbClickOutside(event)">
+  <div class="lb-top"><button class="lb-close" onclick="closeLb()">✕</button></div>
+  <div class="lb-track-wrap" id="lbWrap">
+    <div class="lb-track" id="lbTrack"></div>
+  </div>
+  <div class="lb-dots" id="lbDots"></div>
+  <p class="lb-title" id="lbTitle"></p>
+</div>
+
+<footer>ABS Snack · Min. order 1 pcs · Harga belum termasuk ongkir</footer>
+
+<script>
+const WA = "6287880834479";
+
+const products = [
+  {name:"BINTANG KILOAN",desc:"BINTANG tersedia dalam pilihan rasa Original, Pedas, dan Extra Pedas.",cat:"kiloan",imgs:["https://res.cloudinary.com/alpbzhpy/image/upload/v1794499459/Makroni_Bintang_Pedas_Gurih.png","https://res.cloudinary.com/alpbzhpy/image/upload/v1794461790/Screenshot_1184-adjusted.jpg","https://res.cloudinary.com/alpbzhpy/image/upload/v1794461789/Screenshot_1195-adjusted.jpg","https://res.cloudinary.com/alpbzhpy/image/upload/v1794461788/Screenshot_1190-adjusted.jpg","https://res.cloudinary.com/alpbzhpy/image/upload/v1794461787/Screenshot_1188-adjusted.jpg","https://res.cloudinary.com/alpbzhpy/image/upload/v1794461786/Screenshot_1185-adjusted.jpg"],variants:[["100 gr","3.500"],["250 gr","8.750"],["500 gr","17.500"],["1.000 gr","35.000"]]},
+  {name:"PEDO MAWAR KILOAN",desc:"PEDO MAWAR tersedia dalam pilihan rasa Original, Pedas, dan Extra Pedas.",cat:"kiloan",imgs:["https://res.cloudinary.com/alpbzhpy/image/upload/v1794499469/Poster_Camilan_Makaroni_Kribo.png","https://res.cloudinary.com/alpbzhpy/image/upload/v1794461811/Screenshot_1178-adjusted.png","https://res.cloudinary.com/alpbzhpy/image/upload/v1794461810/Screenshot_1174-adjusted.png","https://res.cloudinary.com/alpbzhpy/image/upload/v1794461809/Screenshot_1181-adjusted.png","https://res.cloudinary.com/alpbzhpy/image/upload/v1794461808/Screenshot_1183-adjusted.png","https://res.cloudinary.com/alpbzhpy/image/upload/v1794461806/Screenshot_1182-adjusted.png"],variants:[["100 gr","3.500"],["250 gr","8.750"],["500 gr","17.500"],["1.000 gr","35.000"]]},
+  {name:"UDANG KILOAN",desc:"UDANG tersedia dalam pilihan rasa Original, Pedas, dan Extra Pedas.",cat:"kiloan",imgs:["https://res.cloudinary.com/alpbzhpy/image/upload/v1794499455/Makaroni_Udang_Camilan_Bikin_Nagih.png","https://res.cloudinary.com/alpbzhpy/image/upload/v1794461737/Screenshot_1204-adjusted.jpg","https://res.cloudinary.com/alpbzhpy/image/upload/v1794461736/Screenshot_1202-adjusted.jpg","https://res.cloudinary.com/alpbzhpy/image/upload/v1794461735/Screenshot_1198-adjusted.jpg","https://res.cloudinary.com/alpbzhpy/image/upload/v1794461734/Screenshot_1203-adjusted.jpg","https://res.cloudinary.com/alpbzhpy/image/upload/v1794461733/Screenshot_1199-adjusted.jpg"],variants:[["100 gr","3.500"],["250 gr","8.750"],["500 gr","17.500"],["1.000 gr","35.000"]]},
+  {name:"MAKARONI DJ KILOAN",desc:"MAKARONI DJ tersedia dalam pilihan rasa Original, Pedas, dan Extra Pedas.",cat:"kiloan",imgs:["https://res.cloudinary.com/alpbzhpy/image/upload/v1794499449/Makaroni_Pipa_Pedas_Nendang.png","https://res.cloudinary.com/alpbzhpy/image/upload/v1794461824/Screenshot_1161-adjusted.png","https://res.cloudinary.com/alpbzhpy/image/upload/v1794461822/Screenshot_1160-adjusted.png","https://res.cloudinary.com/alpbzhpy/image/upload/v1794461821/Screenshot_1163-adjusted.png","https://res.cloudinary.com/alpbzhpy/image/upload/v1794461820/Screenshot_1165-adjusted.png","https://res.cloudinary.com/alpbzhpy/image/upload/v1794461819/Screenshot_1169-adjusted.png"],variants:[["100 gr","3.500"],["250 gr","8.750"],["500 gr","17.500"],["1.000 gr","35.000"]]},
+  {name:"BAWANG BIBIR KILOAN",desc:"BAWANG BIBIR tersedia dalam pilihan rasa Original, Pedas, dan Extra Pedas.",cat:"kiloan",imgs:["https://res.cloudinary.com/alpbzhpy/image/upload/v1794499413/Camilan_Pedas_Makaroni_Bibir.png","https://res.cloudinary.com/alpbzhpy/image/upload/v1794461699/Screenshot_1208.jpg","https://res.cloudinary.com/alpbzhpy/image/upload/v1794461699/Screenshot_1212.jpg","https://res.cloudinary.com/alpbzhpy/image/upload/v1794461699/Screenshot_1215.jpg","https://res.cloudinary.com/alpbzhpy/image/upload/v1794461698/Screenshot_1209.jpg","https://res.cloudinary.com/alpbzhpy/image/upload/v1794461697/Screenshot_1216.jpg"],variants:[["100 gr","3.500"],["250 gr","8.750"],["500 gr","17.500"],["1.000 gr","35.000"]]},
+  {name:"BANTET KILOAN",desc:"BANTET tersedia dalam pilihan rasa Original, Pedas, dan Extra Pedas.",cat:"kiloan",imgs:["https://res.cloudinary.com/alpbzhpy/image/upload/v1794499339/Poster_Promosi_Snack_Pedas_Beton.png","https://res.cloudinary.com/alpbzhpy/image/upload/v1794461769/Screenshot_1148-adjusted.png","https://res.cloudinary.com/alpbzhpy/image/upload/v1794461767/Screenshot_1152-adjusted.png","https://res.cloudinary.com/alpbzhpy/image/upload/v1794461766/Screenshot_1153-adjusted.png","https://res.cloudinary.com/alpbzhpy/image/upload/v1794461765/Screenshot_1149-adjusted.png","https://res.cloudinary.com/alpbzhpy/image/upload/v1794461764/Screenshot_1154-adjusted.png"],variants:[["100 gr","3.500"],["250 gr","8.750"],["500 gr","17.500"],["1.000 gr","35.000"]]},
+  {name:"BASRENG KOIN KILOAN",desc:"BASRENG KOIN tersedia dalam pilihan rasa Original, Pedas, dan Extra Pedas.",cat:"kiloan",imgs:["https://res.cloudinary.com/alpbzhpy/image/upload/v1794499466/Poster_Basreng_Koin_Pedas_Gurih.png","https://res.cloudinary.com/alpbzhpy/image/upload/v1794461996/0de6399e1e3a4dc5a3ee7f3409dc7fca.jpg","https://res.cloudinary.com/alpbzhpy/image/upload/v1794461995/a052f2f8c10f45d29aeba4c0b94f2c97.jpg","https://res.cloudinary.com/alpbzhpy/image/upload/v1794461993/4a0336502e724c33a27ed938aff19ba1.jpg","https://res.cloudinary.com/alpbzhpy/image/upload/v1794461991/Screenshot_586.jpg","https://res.cloudinary.com/alpbzhpy/image/upload/v1794461990/Screenshot_585.jpg"],variants:[["100 gr","4.000"],["250 gr","10.000"],["500 gr","20.000"],["1.000 gr","40.000"]]},
+  {name:"MIE GULUNG KILOAN",desc:"MIE GULUNG tersedia dalam pilihan rasa Original, Pedas, dan Extra Pedas.",cat:"kiloan",imgs:["https://res.cloudinary.com/alpbzhpy/image/upload/v1794499296/Poster_Iklan_Mie_Gulung_Pedas_Gurih.png","https://res.cloudinary.com/alpbzhpy/image/upload/v1794461937/4e2df59ed8a64fbaa6589720b3c96101.jpg","https://res.cloudinary.com/alpbzhpy/image/upload/v1794461935/322cc52843c14bf4a59a00ebf1b0af19.jpg","https://res.cloudinary.com/alpbzhpy/image/upload/v1794461934/f5ed015fe8e14a53b812a13798eefef7.jpg","https://res.cloudinary.com/alpbzhpy/image/upload/v1794461932/d113ef69b67b438ca0b834e35307fadd.jpg","https://res.cloudinary.com/alpbzhpy/image/upload/v1794461931/a53e39993ca8489d9ebdb87d158779dc.jpg"],variants:[["100 gr","4.000"],["250 gr","10.000"],["500 gr","20.000"],["1.000 gr","40.000"]]},
+  {name:"BASRENG KILOAN",desc:"BASRENG tersedia dalam pilihan rasa Original, Pedas, dan Extra Pedas.",cat:"kiloan",imgs:["https://res.cloudinary.com/alpbzhpy/image/upload/v1794499375/Basreng_Stik_Pedas_Gurih.png","https://res.cloudinary.com/alpbzhpy/image/upload/v1794462021/113ca6451a19cacaa9685298d7e6d667.jpg","https://res.cloudinary.com/alpbzhpy/image/upload/v1794462020/97a98d14bc505fb6dd1672903755d986.jpg","https://res.cloudinary.com/alpbzhpy/image/upload/v1794462018/0f890be9c5e0bbdf0e700ad5d8303487.jpg","https://res.cloudinary.com/alpbzhpy/image/upload/v1794462016/7b249ca381b995098996c33f658419cb.jpg","https://res.cloudinary.com/alpbzhpy/image/upload/v1794462015/b9574ddc20591783a9b342cac89a0236.jpg"],variants:[["100 gr","4.000"],["250 gr","10.000"],["500 gr","20.000"],["1.000 gr","40.000"]]},
+  {name:"CIMOL KILOAN",desc:"CIMOL tersedia dalam pilihan rasa Original, Pedas, dan Extra Pedas.",cat:"kiloan",imgs:["https://res.cloudinary.com/alpbzhpy/image/upload/v1794499439/Cimol_Pedas_Gurih_Menggoda.png","https://res.cloudinary.com/alpbzhpy/image/upload/v1794461959/6dd0b3b408dc46fd9621f6f7a0267579.jpg","https://res.cloudinary.com/alpbzhpy/image/upload/v1794461958/8a873e774cac48ebbe0ccfe68807450a.jpg","https://res.cloudinary.com/alpbzhpy/image/upload/v1794461956/7f4eaf09fbcf494a8399ca1b5b84d3f6.jpg","https://res.cloudinary.com/alpbzhpy/image/upload/v1794461955/8110b1764d324e74b54d920c3675272b.jpg","https://res.cloudinary.com/alpbzhpy/image/upload/v1794461953/771d984e27024194bd227fc802461578.jpg"],variants:[["100 gr","4.000"],["250 gr","10.000"],["500 gr","20.000"],["1.000 gr","40.000"]]},
+  {name:"BETON KILOAN",desc:"BETON tersedia dalam pilihan rasa Original, Pedas, dan Extra Pedas.",cat:"kiloan",imgs:["https://res.cloudinary.com/alpbzhpy/image/upload/v1794499339/Poster_Promosi_Snack_Pedas_Beton.png","https://res.cloudinary.com/alpbzhpy/image/upload/v1794461973/2bdd81aaf15b4a55899281f5d5d9be7f.jpg","https://res.cloudinary.com/alpbzhpy/image/upload/v1794461972/Screenshot_648.jpg","https://res.cloudinary.com/alpbzhpy/image/upload/v1794461970/Screenshot_645.jpg","https://res.cloudinary.com/alpbzhpy/image/upload/v1794461968/Screenshot_644.jpg","https://res.cloudinary.com/alpbzhpy/image/upload/v1794461967/Screenshot_640.jpg"],variants:[["100 gr","4.000"],["250 gr","10.000"],["500 gr","20.000"],["1.000 gr","40.000"]]},
+  {name:"JENGKOL KILOAN",desc:"JENGKOL tersedia dalam pilihan rasa Original, Pedas, dan Extra Pedas.",cat:"kiloan",imgs:["https://res.cloudinary.com/alpbzhpy/image/upload/v1794499307/Poster_Jengkol_Renyah_Pedas_Gurih.png","https://res.cloudinary.com/alpbzhpy/image/upload/v1794462754/Screenshot_1147-adjusted.jpg","https://res.cloudinary.com/alpbzhpy/image/upload/v1794462736/Screenshot_1144-adjusted.jpg","https://res.cloudinary.com/alpbzhpy/image/upload/v1794462734/Screenshot_1143-adjusted.jpg","https://res.cloudinary.com/alpbzhpy/image/upload/v1794462731/Screenshot_1142-adjusted.jpg"],variants:[["100 gr","4.000"],["250 gr","10.000"],["500 gr","20.000"],["1.000 gr","40.000"]]},
+  {name:"MIX KILOAN",desc:"MIX tersedia dalam pilihan rasa Original, Pedas, dan Extra Pedas.",cat:"kiloan",imgs:["https://res.cloudinary.com/alpbzhpy/image/upload/v1794499329/Poster_Promosi_Seblak_Mix_Pedas.png","https://res.cloudinary.com/alpbzhpy/image/upload/v1794461901/3ffac098-ccc2-477d-8e1c-6f9f63ab6613.jpg","https://res.cloudinary.com/alpbzhpy/image/upload/v1794461899/3ca01cc0a6d9416395b6dde58adde8f6.jpg","https://res.cloudinary.com/alpbzhpy/image/upload/v1794461898/fa92b747b0f6436e8ecfaa458546d24b.jpg","https://res.cloudinary.com/alpbzhpy/image/upload/v1794461897/f889e6ed-83ec-42a7-9764-25d3f83b0571.jpg"],variants:[["100 gr","4.000"],["250 gr","10.000"],["500 gr","20.000"],["1.000 gr","40.000"]]},
+  {name:"KRIPIK KACA KILOAN",desc:"KRIPIK KACA tersedia dalam pilihan rasa Original, Pedas, dan Extra Pedas.",cat:"kiloan",imgs:["https://res.cloudinary.com/alpbzhpy/image/upload/v1794499324/Poster_Promosi_Kripik_Kaca_Pedas.png","https://res.cloudinary.com/alpbzhpy/image/upload/v1794462051/Screenshot_546.jpg","https://res.cloudinary.com/alpbzhpy/image/upload/v1794462050/Screenshot_55.jpg","https://res.cloudinary.com/alpbzhpy/image/upload/v1794462048/Screenshot_545-removebg-preview_1.jpg","https://res.cloudinary.com/alpbzhpy/image/upload/v1794462046/Screenshot_56.jpg","https://res.cloudinary.com/alpbzhpy/image/upload/v1794462044/Screenshot_547-removebg-preview.jpg"],variants:[["100 gr","4.000"],["250 gr","10.000"],["500 gr","20.000"],["1.000 gr","40.000"]]},
+  {name:"SIOMAY KILOAN",desc:"SIOMAY tersedia dalam pilihan rasa Original, Pedas, dan Extra Pedas.",cat:"kiloan",imgs:["https://res.cloudinary.com/alpbzhpy/image/upload/v1794499345/Poster_Siomay_Pedas_Kekinian.png","https://res.cloudinary.com/alpbzhpy/image/upload/v1794461885/b3931ed5-96d8-4501-859c-1d0a7c8111fd.jpg","https://res.cloudinary.com/alpbzhpy/image/upload/v1794461884/0d99da2b83704d9b88996e9eaaa3cfa0.jpg","https://res.cloudinary.com/alpbzhpy/image/upload/v1794461883/Screenshot_684.jpg","https://res.cloudinary.com/alpbzhpy/image/upload/v1794461881/f252e7b9ef0344e797e10715d226def6.jpg","https://res.cloudinary.com/alpbzhpy/image/upload/v1794461880/d480aaeb-dbb5-4e5f-b05c-948c8206d4c3.jpg"],variants:[["100 gr","4.000"],["250 gr","10.000"],["500 gr","20.000"],["1.000 gr","40.000"]]},
+  {name:"USUS KILOAN",desc:"USUS tersedia dalam pilihan rasa Original, Pedas, dan Extra Pedas.",cat:"kiloan",imgs:["https://res.cloudinary.com/alpbzhpy/image/upload/v1794499444/Kemasan_Snack_Usus_Pedas_Gurih.png","https://res.cloudinary.com/alpbzhpy/image/upload/v1794461872/Screenshot_634.jpg","https://res.cloudinary.com/alpbzhpy/image/upload/v1794461871/Screenshot_622.jpg","https://res.cloudinary.com/alpbzhpy/image/upload/v1794461870/Screenshot_630.jpg","https://res.cloudinary.com/alpbzhpy/image/upload/v1794461868/aaf6b539f05e42b895dab61bd9fa3126.jpg","https://res.cloudinary.com/alpbzhpy/image/upload/v1794461867/Screenshot_621.jpg"],variants:[["100 gr","5.500"],["250 gr","13.750"],["500 gr","27.500"],["1.000 gr","55.000"]]},
+  {name:"MIE LIDI 500ML",desc:"Kemasan 500 ml. Pilihan rasa: Balado, Balado Extra Pedas, Extra Pedas, Keju, Original, Pedas.",cat:"kemasan",imgs:["https://res.cloudinary.com/alpbzhpy/image/upload/v1794552989/Poster_Promo_Mie_Lidi_Pedas_dan_Gurih.jpg","https://res.cloudinary.com/alpbzhpy/image/upload/v1794476190/Delapan_Varian_Stik_Camilan.png","https://res.cloudinary.com/alpbzhpy/image/upload/v1794476185/id-11134207-81ztg-mdwv3xarjdvpb5.webp","https://res.cloudinary.com/alpbzhpy/image/upload/v1794476159/id-11134207-81ztg-mdwv3xarhzb9c9.webp","https://res.cloudinary.com/alpbzhpy/image/upload/v1794476030/ac4784be5b8cd72f823ba9ba0de8cc67.webp"],variants:[["Balado","5.000"],["Balado Ekstra Pedas","5.000"],["Extra Pedas","5.000"],["Keju","5.000"],["Original","5.000"],["Pedas","5.000"]]},
+  {name:"MIE LUMER 500ML",desc:"Kemasan 500 ml. Pilihan rasa: Cappuccino, Cokelat, Stroberi, Taro, Tiramisu.",cat:"kemasan",imgs:["https://res.cloudinary.com/alpbzhpy/image/upload/v1794552980/Iklan_Mie_Lidi_Lumer_Warna-Warni.jpg","https://res.cloudinary.com/alpbzhpy/image/upload/v1794473505/Lima_Wadah_Mi_Stik_Berlapis_Glasir.png","https://res.cloudinary.com/alpbzhpy/image/upload/v1794473501/Camilan_Stroberi_dalam_Wadah_Transparan.png","https://res.cloudinary.com/alpbzhpy/image/upload/v1794473498/Tiga_Wadah_Stik_Berlapis_Glazur.png","https://res.cloudinary.com/alpbzhpy/image/upload/v1794473495/Mi_Matcha_Hijau_Berkilau.png","https://res.cloudinary.com/alpbzhpy/image/upload/v1794473491/Cokelat_Batang_Renyah_Mengilap.png"],variants:[["Cappuccino","6.500"],["Cokelat","6.500"],["Stroberi","6.500"],["Taro","6.500"],["Tiramisu","6.500"]]},
+  {name:"PISANG 500ML",desc:"Kemasan 500 ml. Pilihan rasa: Cappuccino, Cokelat, Stroberi, Taro, Tiramisu.",cat:"kemasan",imgs:["https://res.cloudinary.com/alpbzhpy/image/upload/v1794552998/Gambar_ChatGPT_13_Nov_2026_13.46.35.jpg","https://res.cloudinary.com/alpbzhpy/image/upload/v1794469894/Wadah_Kriuk_Matcha_Hijau.png","https://res.cloudinary.com/alpbzhpy/image/upload/v1794469891/Camilan_Tiramisu_dalam_Wadah_Transparan.png","https://res.cloudinary.com/alpbzhpy/image/upload/v1794469889/Taro_Renyah_Ungu_Berlapis_Glossy.png","https://res.cloudinary.com/alpbzhpy/image/upload/v1794469885/id-11134207-7r98r-lpt40dn57gw59a.webp","https://res.cloudinary.com/alpbzhpy/image/upload/v1794469883/id-11134207-7r98q-lpt40dn58vgl8b.webp"],variants:[["Cappuccino","8.000"],["Cokelat","8.000"],["Stroberi","8.000"],["Taro","8.000"],["Tiramisu","8.000"]]},
+  {name:"SOTONG SNACK",desc:"Snack kecil. Pilihan rasa: Original, Pedas, Extra Pedas.",cat:"snack",imgs:["https://res.cloudinary.com/alpbzhpy/image/upload/v1794551227/Poster_Snack_Sotong_Pedas_Berkilau.jpg","https://res.cloudinary.com/alpbzhpy/image/upload/v1794468954/id-11134207-7r98r-lpvyn4cu924m3c.webp","https://res.cloudinary.com/alpbzhpy/image/upload/v1794468952/id-11134207-7r98p-lpvyn4cu7nk61c.webp","https://res.cloudinary.com/alpbzhpy/image/upload/v1794468949/id-11134207-7r98u-lpvyn4cuagp286.webp"],variants:[["Original","2.000"],["Pedas","2.000"],["Extra Pedas","2.000"]]},
+  {name:"TALAS SNACK",desc:"Snack kecil. Pilihan rasa: Original, Pedas, Extra Pedas.",cat:"snack",imgs:["https://res.cloudinary.com/alpbzhpy/image/upload/v1794551183/Poster_Promosi_Snack_Talas_Pedas.jpg","https://res.cloudinary.com/alpbzhpy/image/upload/v1794468930/id-11134207-7r992-lpvyn4htw57402.webp","https://res.cloudinary.com/alpbzhpy/image/upload/v1794468928/id-11134207-7r98y-lpvyn4htuqmobc.webp","https://res.cloudinary.com/alpbzhpy/image/upload/v1794468925/id-11134207-7r992-lpvyn4htxjrk26.webp"],variants:[["Original","2.000"],["Pedas","2.000"],["Extra Pedas","2.000"]]},
+  {name:"SINGKONG KRIWIL SNACK",desc:"Snack kecil. Pilihan rasa: Pedas, Extra Pedas.",cat:"snack",imgs:["https://res.cloudinary.com/alpbzhpy/image/upload/v1794551120/Poster_Promo_Kerupuk_Seblak_Kriwil_Pedas.jpg","https://res.cloudinary.com/alpbzhpy/image/upload/v1794469075/id-11134207-7r98r-lpsw9imq32fa2c.webp","https://res.cloudinary.com/alpbzhpy/image/upload/v1794469072/id-11134207-7r98q-lpsw9imq4gzqc3.webp","https://res.cloudinary.com/alpbzhpy/image/upload/v1794469070/id-11134207-7r98y-lpsw9imq1nuu3e.webp"],variants:[["Pedas","2.000"],["Extra Pedas","2.000"]]},
+  {name:"BINTANG SNACK",desc:"Snack kecil. Pilihan rasa: Original, Pedas, Extra Pedas.",cat:"snack",imgs:["https://res.cloudinary.com/alpbzhpy/image/upload/v1794551103/Poster_Camilan_Kerupuk_Seblak_Bintang.jpg","https://res.cloudinary.com/alpbzhpy/image/upload/v1794469246/snack.webp","https://res.cloudinary.com/alpbzhpy/image/upload/v1794469243/sg-11134201-823rh-mp5h4wj5gge828.webp","https://res.cloudinary.com/alpbzhpy/image/upload/v1794469240/sg-11134201-823ou-mp5h4yu82a6n69.webp","https://res.cloudinary.com/alpbzhpy/image/upload/v1794469237/e40bc425afc412230f869ee1f7b34c27.webp","https://res.cloudinary.com/alpbzhpy/image/upload/v1794469235/970055b19bed1895e0675c3689440321.webp"],variants:[["Original","2.000"],["Pedas","2.000"],["Extra Pedas","2.000"]]},
+  {name:"BASRENG SNACK",desc:"Snack kecil. Pilihan rasa: Original, Pedas, Extra Pedas.",cat:"snack",imgs:["https://res.cloudinary.com/alpbzhpy/image/upload/v1794551191/Poster_Snack_Basreng_Stik_Tiga_Varian.jpg","https://res.cloudinary.com/alpbzhpy/image/upload/v1794469873/id-11134207-7r98y-lnw3r2egmm4c43.webp","https://res.cloudinary.com/alpbzhpy/image/upload/v1794469870/id-11134207-7r98t-lnw3r2ego0os59.webp","https://res.cloudinary.com/alpbzhpy/image/upload/v1794469868/id-11134207-7r98s-lnw3r2egpf98b4.webp"],variants:[["Original","2.000"],["Pedas","2.000"],["Extra Pedas","2.000"]]},
+  {name:"UDANG SNACK",desc:"Snack kecil. Pilihan rasa: Original, Pedas, Extra Pedas.",cat:"snack",imgs:["https://res.cloudinary.com/alpbzhpy/image/upload/v1794551316/Iklan_Snack_Udang_Pedas_Ceria.jpg","https://res.cloudinary.com/alpbzhpy/image/upload/v1794468914/560bc4224917875f82d3faba61d60196.webp","https://res.cloudinary.com/alpbzhpy/image/upload/v1794468912/311dc824f28b51401b716eb47d11583d.webp","https://res.cloudinary.com/alpbzhpy/image/upload/v1794468909/2eec6d554e2739069be150ddef5f3800.webp","https://res.cloudinary.com/alpbzhpy/image/upload/v1794468907/sg-11134201-823rk-mp626j4zdog252.webp"],variants:[["Original","2.000"],["Pedas","2.000"],["Extra Pedas","2.000"]]},
+  {name:"DAUN JERUK SNACK",desc:"Snack kecil. Pilihan rasa: Original, Pedas, Extra Pedas.",cat:"snack",imgs:["https://res.cloudinary.com/alpbzhpy/image/upload/v1794551129/Poster_Promo_Kerupuk_Seblak_Makaroni_Pedas.jpg","https://res.cloudinary.com/alpbzhpy/image/upload/v1794469055/3564f6aa817d591ea2a90cf78a67ab66.webp","https://res.cloudinary.com/alpbzhpy/image/upload/v1794469052/ed5422deeac8331992d502125d46dc3e.webp","https://res.cloudinary.com/alpbzhpy/image/upload/v1794469049/eaf537199d5be3c8caee76b71d328bee.webp"],variants:[["Original","2.000"],["Pedas","2.000"],["Extra Pedas","2.000"]]},
+  {name:"CUMI ABON SNACK",desc:"Snack kecil. Pilihan rasa: Original, Pedas, Extra Pedas.",cat:"snack",imgs:["https://res.cloudinary.com/alpbzhpy/image/upload/v1794551280/Iklan_Cumi_Abon_Pedas_Menggoda.jpg","https://res.cloudinary.com/alpbzhpy/image/upload/v1794469171/id-11134207-7r98z-lpt00k0vtuyu70.webp","https://res.cloudinary.com/alpbzhpy/image/upload/v1794469168/id-11134207-7r98w-lpt00k0vwo3q9f.webp","https://res.cloudinary.com/alpbzhpy/image/upload/v1794469166/id-11134207-7r98t-lpt00k0vv9ja28.webp","https://res.cloudinary.com/alpbzhpy/image/upload/v1794469163/id-11134207-7r98p-lpt00k0vsgeeff.webp"],variants:[["Original","2.000"],["Pedas","2.000"],["Extra Pedas","2.000"]]},
+  {name:"SUMPIA SNACK",desc:"Snack kecil. Pilihan rasa: Original, Pedas, Extra Pedas.",cat:"snack",imgs:["https://res.cloudinary.com/alpbzhpy/image/upload/v1794551254/Promo_Sumpia_Pedas_Harga_Grosir.jpg","https://res.cloudinary.com/alpbzhpy/image/upload/v1794468946/id-11134207-7r98s-lpvyvfs22zhae0.webp","https://res.cloudinary.com/alpbzhpy/image/upload/v1794468944/id-11134207-7r98o-lpvyvfs206ce35.webp","https://res.cloudinary.com/alpbzhpy/image/upload/v1794468941/id-11134207-7r98o-lpvyvfs1yrry1d.webp","https://res.cloudinary.com/alpbzhpy/image/upload/v1794468939/id-11134207-7r98u-lpvyvfs1xd7iec.webp"],variants:[["Original","2.000"],["Pedas","2.000"],["Extra Pedas","2.000"]]},
+  {name:"BIBIR SNACK",desc:"Snack kecil. Pilihan rasa: Original, Pedas, Extra Pedas.",cat:"snack",imgs:["https://res.cloudinary.com/alpbzhpy/image/upload/v1794551200/Poster_Snack_Bibir_Pedas_Harga_Grosir.jpg","https://res.cloudinary.com/alpbzhpy/image/upload/v1794469267/id-11134201-7r991-ln89976cdxyfce.webp","https://res.cloudinary.com/alpbzhpy/image/upload/v1794469264/id-11134201-7r98v-ln8996yuqbhgb2.webp","https://res.cloudinary.com/alpbzhpy/image/upload/v1794469261/id-11134201-7r98u-ln8997x9aklz15.webp","https://res.cloudinary.com/alpbzhpy/image/upload/v1794469258/id-11134201-7r98o-ln8998bopgcsf0.webp"],variants:[["Original","2.000"],["Pedas","2.000"],["Extra Pedas","2.000"]]},
+  {name:"ULIR SNACK",desc:"Snack kecil. Pilihan rasa: Original, Pedas, Extra Pedas.",cat:"snack",imgs:["https://res.cloudinary.com/alpbzhpy/image/upload/v1794551147/Poster_Promosi_Kerupuk_Seblak_B%D0%B0%D0%BD%D1%82et_Pedas_1.jpg","https://res.cloudinary.com/alpbzhpy/image/upload/v1794468904/id-11134201-7r98w-ln8994h8c2hb56.webp","https://res.cloudinary.com/alpbzhpy/image/upload/v1794468901/id-11134201-7r98w-ln8993r5e8bo47.webp","https://res.cloudinary.com/alpbzhpy/image/upload/v1794468899/id-11134201-7r98v-ln8992y0m9xzf5.webp","https://res.cloudinary.com/alpbzhpy/image/upload/v1794468898/id-11134201-7r98z-ln89932gecw108.webp"],variants:[["Original","2.000"],["Pedas","2.000"],["Extra Pedas","2.000"]]},
+  {name:"KRIBO SNACK",desc:"Snack kecil. Pilihan rasa: Original, Pedas, Extra Pedas.",cat:"snack",imgs:["https://res.cloudinary.com/alpbzhpy/image/upload/v1794551307/Iklan_Snack_Kribo_Pedas_Ceria.jpg","https://res.cloudinary.com/alpbzhpy/image/upload/v1794469185/id-11134201-7r98z-ln8992ykk25990.webp","https://res.cloudinary.com/alpbzhpy/image/upload/v1794469183/id-11134201-7r98x-ln8993s9cm1beb.webp","https://res.cloudinary.com/alpbzhpy/image/upload/v1794469180/id-11134201-7r98w-ln8993x95axb91.webp","https://res.cloudinary.com/alpbzhpy/image/upload/v1794469177/id-11134201-7r98o-ln8993itqex816.webp","https://res.cloudinary.com/alpbzhpy/image/upload/v1794469175/sg-11134201-823ou-mp5kvaaobevh7a.webp"],variants:[["Original","2.000"],["Pedas","2.000"],["Extra Pedas","2.000"]]},
+  {name:"BANTET LIBRA SNACK",desc:"Snack kecil. Pilihan rasa: Original, Pedas, Extra Pedas.",cat:"snack",imgs:["https://res.cloudinary.com/alpbzhpy/image/upload/v1794551289/Iklan_Snack_Bantet_Pedas_Meriah.jpg","https://res.cloudinary.com/alpbzhpy/image/upload/v1794470242/id-11134201-7r992-ln8995fmxpu4a9.webp","https://res.cloudinary.com/alpbzhpy/image/upload/v1794470238/id-11134201-7r98v-ln8994xboihw67.webp","https://res.cloudinary.com/alpbzhpy/image/upload/v1794470235/id-11134201-7r98q-ln899446v5e469.webp","https://res.cloudinary.com/alpbzhpy/image/upload/v1794470233/id-11134201-7r98o-ln8992sqskhtf0.webp"],variants:[["Original","2.000"],["Pedas","2.000"],["Extra Pedas","2.000"]]},
+  {name:"KRIPIK KACA SNACK",desc:"Snack kecil. Pilihan rasa: Original, Pedas, Extra Pedas.",cat:"snack",imgs:["https://res.cloudinary.com/alpbzhpy/image/upload/v1794551138/Poster_Promo_Snack_Kaca_Pedas.jpg","https://res.cloudinary.com/alpbzhpy/image/upload/v1794469191/1f37e34c1628e6dfea295ab7ca83b36c.webp","https://res.cloudinary.com/alpbzhpy/image/upload/v1794469189/718fe14c3221ca5666f6db7fc718b19d.webp"],variants:[["Original","2.000"],["Pedas","2.000"],["Extra Pedas","2.000"]]},
+  {name:"SIOMAY SNACK",desc:"Snack kecil. Pilihan rasa: Original, Pedas, Extra Pedas.",cat:"snack",imgs:["https://res.cloudinary.com/alpbzhpy/image/upload/v1794551245/Promo_Kerupuk_Seblak_Pedas_ABS.jpg","https://res.cloudinary.com/alpbzhpy/image/upload/v1794468979/id-11134207-7r98x-lpvylos1dm3i71.webp","https://res.cloudinary.com/alpbzhpy/image/upload/v1794468863/IMG_9060.JPG.png","https://res.cloudinary.com/alpbzhpy/image/upload/v1794468848/id-11134207-7r98v-lpvylos1gf8eec.webp","https://res.cloudinary.com/alpbzhpy/image/upload/v1794468842/id-11134207-7r98t-lpvylos1j8daf6.webp","https://res.cloudinary.com/alpbzhpy/image/upload/v1794468841/id-11134207-7r98r-lpvylos1htsu70.webp"],variants:[["Original","2.000"],["Pedas","2.000"],["Extra Pedas","2.000"]]},
+  {name:"PANGSIT SNACK",desc:"Snack kecil. Pilihan rasa: Original, Pedas, Extra Pedas.",cat:"snack",imgs:["https://res.cloudinary.com/alpbzhpy/image/upload/v1794551174/Poster_Promosi_Snack_Pangsit_Pedas.jpg","https://res.cloudinary.com/alpbzhpy/image/upload/v1794469019/id-11134207-7r98x-lpt40dn50g1x54.webp","https://res.cloudinary.com/alpbzhpy/image/upload/v1794469016/id-11134207-7r98q-lpt40dn4z1geda.webp","https://res.cloudinary.com/alpbzhpy/image/upload/v1794469014/id-11134207-7r98q-lpt2ymlu85v667.webp","https://res.cloudinary.com/alpbzhpy/image/upload/v1794469011/id-11134207-7r98y-lpt40dpcvsfm0e.webp"],variants:[["Original","2.000"],["Pedas","2.000"],["Extra Pedas","2.000"]]},
+  {name:"MIE KREMES SNACK",desc:"Snack kecil. Pilihan rasa Original, Pedas, dan Extra Pedas.",cat:"snack",imgs:["https://res.cloudinary.com/alpbzhpy/image/upload/v1794551156/Poster_Promosi_Mie_Kremes_Pedas.jpg","https://res.cloudinary.com/alpbzhpy/image/upload/v1794469030/id-11134207-7r98v-lpsvzn0ihk1e9f.webp","https://res.cloudinary.com/alpbzhpy/image/upload/v1794469028/id-11134207-7r98s-lpsvzn0ig5gydb.webp","https://res.cloudinary.com/alpbzhpy/image/upload/v1794469025/id-11134207-7r98r-lpsvzn0ikd6a04.webp","https://res.cloudinary.com/alpbzhpy/image/upload/v1794469022/id-11134207-7r98v-lpsvzn0ilrqqd1.webp"],variants:[["Original","2.000"],["Pedas","2.000"],["Extra Pedas","2.000"]]},
+  {name:"BABY CRAB SNACK",desc:"Snack kecil. Pilihan rasa: Original, Pedas, Extra Pedas.",cat:"snack",imgs:["https://res.cloudinary.com/alpbzhpy/image/upload/v1794551111/Poster_Kerupuk_Seblak_Baby_Crab.jpg","https://res.cloudinary.com/alpbzhpy/image/upload/v1794470315/id-11134207-7r990-lprr5mretw66b5.webp","https://res.cloudinary.com/alpbzhpy/image/upload/v1794470310/id-11134207-7r990-lprr5mreshlqfe.webp","https://res.cloudinary.com/alpbzhpy/image/upload/v1794470254/id-11134207-7r990-lprr5mrer31ae9.webp","https://res.cloudinary.com/alpbzhpy/image/upload/v1794470246/id-11134207-7r98u-lprr5mreo9web6.webp"],variants:[["Original","2.500"],["Pedas","2.500"],["Extra Pedas","2.500"]]},
+  {name:"KACANG THAILAND SNACK",desc:"Snack kecil. Pilihan rasa: Pedas, Extra Pedas.",cat:"snack",imgs:["https://res.cloudinary.com/alpbzhpy/image/upload/v1794551289/Iklan_Snack_Bantet_Pedas_Meriah.jpg","https://res.cloudinary.com/alpbzhpy/image/upload/v1794469066/id-11134207-7r990-lpsvzn0iaj762f.webp","https://res.cloudinary.com/alpbzhpy/image/upload/v1794469064/id-11134207-7r98r-lpsvzn0issnye9.webp","https://res.cloudinary.com/alpbzhpy/image/upload/v1794469061/id-11134207-7r98p-lpstgpt90a9k38.webp","https://res.cloudinary.com/alpbzhpy/image/upload/v1794469058/id-11134207-7r991-lpsvzn0ire3i22.webp"],variants:[["Pedas","2.500"],["Extra Pedas","2.500"]]},
+  {name:"MIE GULUNG SNACK",desc:"Snack kecil. Pilihan rasa: Original, Pedas, Extra Pedas.",cat:"snack",imgs:["https://res.cloudinary.com/alpbzhpy/image/upload/v1794551165/Poster_Promosi_Snack_Mie_Gulung_ABS.jpg","https://res.cloudinary.com/alpbzhpy/image/upload/v1794469046/IMG_9055.JPG.png","https://res.cloudinary.com/alpbzhpy/image/upload/v1794469042/id-11134207-82252-mkrq4jiz0dmv19.webp","https://res.cloudinary.com/alpbzhpy/image/upload/v1794469039/id-11134207-82252-mkrq4jiyw5xjbe.webp","https://res.cloudinary.com/alpbzhpy/image/upload/v1794469036/id-11134207-8224s-mkrq4jiyyz2ff8.webp","https://res.cloudinary.com/alpbzhpy/image/upload/v1794469034/id-11134207-8224p-mkrq4jiyxkhzf4.webp"],variants:[["Original","2.500"],["Pedas","2.500"],["Extra Pedas","2.500"]]},
+  {name:"BASRENG KOIN SNACK",desc:"Snack kecil. Pilihan rasa: Original, Pedas, Extra Pedas.",cat:"snack",imgs:["https://res.cloudinary.com/alpbzhpy/image/upload/v1794551325/Kemasan_Camilan_Basreng_Koin_Pedas.jpg","https://res.cloudinary.com/alpbzhpy/image/upload/v1794469255/IMG_9053.JPG.png","https://res.cloudinary.com/alpbzhpy/image/upload/v1794469250/id-11134207-8224p-mkrq6os88iknad.webp"],variants:[["Original","2.500"],["Pedas","2.500"],["Extra Pedas","2.500"]]},
+  {name:"JENGKOL SNACK",desc:"Snack kecil. Pilihan rasa: Original, Pedas, Extra Pedas.",cat:"snack",imgs:["https://res.cloudinary.com/alpbzhpy/image/upload/v1794551209/Poster_Snack_Jengkol_Pedas_Tiga_Varian.jpg","https://res.cloudinary.com/alpbzhpy/image/upload/v1794469207/IMG_9038.JPG.png","https://res.cloudinary.com/alpbzhpy/image/upload/v1794469203/id-11134207-8224y-mkrq4jiz1s7bfb.webp","https://res.cloudinary.com/alpbzhpy/image/upload/v1794469200/id-11134207-8224t-mkrq4jiz5zwn8f.webp","https://res.cloudinary.com/alpbzhpy/image/upload/v1794469197/id-11134207-8224t-mkrq4jiz4lc749.webp","https://res.cloudinary.com/alpbzhpy/image/upload/v1794469195/id-11134207-8224q-mkrq4jiz36rre1.webp"],variants:[["Original","2.500"],["Pedas","2.500"],["Extra Pedas","2.500"]]},
+  {name:"BETON SNACK",desc:"Snack kecil. Pilihan rasa: Original, Pedas, Extra Pedas.",cat:"snack",imgs:["https://res.cloudinary.com/alpbzhpy/image/upload/v1794551298/Iklan_Snack_Beton_Pedas_Grosir.jpg","https://res.cloudinary.com/alpbzhpy/image/upload/v1794469863/IMG_9043.JPG.png","https://res.cloudinary.com/alpbzhpy/image/upload/v1794469678/id-11134207-8224w-mkrq4jj1wbnq9a.webp","https://res.cloudinary.com/alpbzhpy/image/upload/v1794469675/id-11134207-8224q-mkrq4ji2720wb3.webp","https://res.cloudinary.com/alpbzhpy/image/upload/v1794469673/id-11134207-8224p-mkrq4jhxmpl2de.webp","https://res.cloudinary.com/alpbzhpy/image/upload/v1794469270/id-11134207-8224p-mkrq4jhxlb0m9c.webp"],variants:[["Original","2.500"],["Pedas","2.500"],["Extra Pedas","2.500"]]},
+  {name:"CIMOL SNACK",desc:"Snack kecil. Pilihan rasa: Original, Pedas, Extra Pedas.",cat:"snack",imgs:["https://res.cloudinary.com/alpbzhpy/image/upload/v1794551333/Kemasan_Snack_Cimol_Pedas_Menggoda.jpg","https://res.cloudinary.com/alpbzhpy/image/upload/v1794469231/IMG_9048.JPG.png","https://res.cloudinary.com/alpbzhpy/image/upload/v1794469227/id-11134207-8224p-mkrq6oschmgz90.webp","https://res.cloudinary.com/alpbzhpy/image/upload/v1794469224/sg-11134201-824hg-mpinsw6dcm4vd1.webp","https://res.cloudinary.com/alpbzhpy/image/upload/v1794469221/sg-11134201-824gx-mpinsxrb3toh01.webp","https://res.cloudinary.com/alpbzhpy/image/upload/v1794469218/id-11134207-8224q-mkrq4jiz8t1j39.webp"],variants:[["Original","2.500"],["Pedas","2.500"],["Extra Pedas","2.500"]]},
+  {name:"USUS SNACK",desc:"Snack kecil. Pilihan rasa: Original, Pedas, Extra Pedas.",cat:"snack",imgs:["https://res.cloudinary.com/alpbzhpy/image/upload/v1794551271/Snack_Usus_ABS_Harga_Grosir.jpg","https://res.cloudinary.com/alpbzhpy/image/upload/v1794468893/IMG_9033.JPG.png","https://res.cloudinary.com/alpbzhpy/image/upload/v1794468888/id-11134207-8224p-mkrpcwfrloue63.webp","https://res.cloudinary.com/alpbzhpy/image/upload/v1794468885/sg-11134201-824h3-mpjwz7yjbea388.webp","https://res.cloudinary.com/alpbzhpy/image/upload/v1794468883/id-11134207-82250-mkrpcwfrohzac1.webp","https://res.cloudinary.com/alpbzhpy/image/upload/v1794468881/id-11134207-8224w-mkrpcwfrpwjqdd.webp"],variants:[["Original","3.000"],["Pedas","3.000"],["Extra Pedas","3.000"]]},
+  {name:"PISANG MANIS SNACK",desc:"Snack pisang kecil dengan rasa Manis.",cat:"snack",imgs:["https://res.cloudinary.com/alpbzhpy/image/upload/v1794551236/Promo_Kerupuk_Pisang_Harga_Grosir.jpg","https://res.cloudinary.com/alpbzhpy/image/upload/v1794469004/id-11134207-7r98u-lpt4fe0gipof2e.webp","https://res.cloudinary.com/alpbzhpy/image/upload/v1794469002/id-11134207-7r98u-lpt4fe0ghb3z9c.webp","https://res.cloudinary.com/alpbzhpy/image/upload/v1794468999/id-11134207-7r98s-lpt4fe0gk48vc3.webp","https://res.cloudinary.com/alpbzhpy/image/upload/v1794468996/id-11134207-7r98w-lpt4fe0gfwjj6f.webp"],variants:[["Manis","2.000"]]}
+];
+
+const waIcon = `<svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413z"/></svg>`;
+
+function buildCard(p) {
+  const vars = p.variants.map(v=>`<div class="price-row"><span class="price-size">${v[0]}</span><span class="price-val">Rp ${v[1]}</span></div>`).join('');
+  const waMsg = encodeURIComponent(`Halo, saya ingin order *${p.name}*`);
+  const desc = p.desc ? `<p class="card-desc">${p.desc}</p>` : '';
+  return `<div class="card" onclick="openLb(${JSON.stringify(p.imgs)},${JSON.stringify(p.name)})">
+    <img class="card-img" src="${p.imgs[0]}" alt="${p.name}" loading="lazy">
+    <div class="card-body">
+      <p class="card-title">${p.name}</p>
+      ${desc}
+      <div class="price-list">${vars}</div>
+      <a class="btn-wa" href="https://wa.me/${WA}?text=${waMsg}" onclick="event.stopPropagation()">${waIcon} Pesan</a>
+    </div>
+  </div>`;
+}
+
+function renderAll() {
+  const cats = {semua: products, kiloan: products.filter(p=>p.cat==='kiloan'), snack: products.filter(p=>p.cat==='snack'), kemasan: products.filter(p=>p.cat==='kemasan')};
+  for (const [key, list] of Object.entries(cats)) {
+    const el = document.getElementById('sec-'+key);
+    el.innerHTML = `<div class="grid">${list.map(buildCard).join('')}</div>`;
+  }
+}
+
+function switchTab(key, btn) {
+  document.querySelectorAll('.tab-btn').forEach(b=>b.classList.remove('active'));
+  btn.classList.add('active');
+  document.querySelectorAll('.section').forEach(s=>s.classList.remove('active'));
+  document.getElementById('sec-'+key).classList.add('active');
+}
+
+// LIGHTBOX
+let lbIdx = 0, lbImgs = [];
+let startX = 0;
+
+function openLb(imgs, title) {
+  lbImgs = imgs.filter(Boolean);
+  lbIdx = 0;
+  const track = document.getElementById('lbTrack');
+  track.innerHTML = lbImgs.map(src=>`<div class="lb-slide"><img src="${src}" alt=""></div>`).join('');
+  document.getElementById('lbTitle').textContent = title;
+  renderDots();
+  moveTo(0);
+  document.getElementById('lightbox').classList.add('open');
+  document.body.style.overflow='hidden';
+}
+
+function closeLb() {
+  document.getElementById('lightbox').classList.remove('open');
+  document.body.style.overflow='';
+}
+
+function lbClickOutside(e) {
+  if(e.target === document.getElementById('lightbox')) closeLb();
+}
+
+function moveTo(idx) {
+  lbIdx = idx;
+  document.getElementById('lbTrack').style.transform = `translateX(-${idx*100}%)`;
+  document.querySelectorAll('.lb-dot').forEach((d,i)=>d.classList.toggle('active',i===idx));
+}
+
+function renderDots() {
+  const dots = document.getElementById('lbDots');
+  dots.innerHTML = lbImgs.map((_,i)=>`<button class="lb-dot${i===0?' active':''}" onclick="moveTo(${i})"></button>`).join('');
+}
+
+// Swipe support
+const lbWrap = document.getElementById('lbWrap');
+lbWrap.addEventListener('touchstart', e=>{ startX = e.touches[0].clientX; }, {passive:true});
+lbWrap.addEventListener('touchend', e=>{
+  const diff = startX - e.changedTouches[0].clientX;
+  if(Math.abs(diff)>40) { diff>0 ? moveTo(Math.min(lbIdx+1,lbImgs.length-1)) : moveTo(Math.max(lbIdx-1,0)); }
+});
+// Mouse drag
+let mouseDown=false, mouseStartX=0;
+lbWrap.addEventListener('mousedown',e=>{mouseDown=true;mouseStartX=e.clientX;});
+lbWrap.addEventListener('mouseup',e=>{
+  if(!mouseDown) return; mouseDown=false;
+  const diff=mouseStartX-e.clientX;
+  if(Math.abs(diff)>40){ diff>0?moveTo(Math.min(lbIdx+1,lbImgs.length-1)):moveTo(Math.max(lbIdx-1,0)); }
+});
+
+renderAll();
+</script>
+</body>
+</html>
